@@ -81,8 +81,8 @@ func TestExtend(t *testing.T) {
 		t.Errorf("derieved error should only contain its own messges")
 	}
 
-	if errors.Is(errW.(*Error).Unwrap(), err) {
-		t.Errorf("derieved \"%s\" error is not base error \"%s\"", errW.(*Error).Unwrap().Error(), err.Error())
+	if errors.Is(errW.(*errorWrapper).Unwrap(), err) {
+		t.Errorf("derieved \"%s\" error is not base error \"%s\"", errW.(*errorWrapper).Unwrap().Error(), err.Error())
 	}
 }
 
@@ -113,15 +113,15 @@ func TestReturn(t *testing.T) {
 func TestEmbedding(t *testing.T) {
 
 	type Embed struct {
-		Error
+		BaseError
 		a int
 		b string
 	}
 
-	Err := &Embed{Error{nil, nil, "Embed Err"}, 10, "something"}
+	Err := &Embed{BaseError{nil, "Embed Err"}, 10, "something"}
 
-	if Err.Error.Error() != "Embed Err" {
-		t.Errorf("Error: got %v; want %v", Err.Error.Error(), "Embed Err")
+	if Err.Error() != "Embed Err" {
+		t.Errorf("Error: got %v; want %v", Err.Error(), "Embed Err")
 	}
 
 }

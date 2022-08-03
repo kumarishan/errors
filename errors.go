@@ -5,22 +5,40 @@ import (
 	"strings"
 )
 
-type Error struct {
-	err   error
+type BaseError struct {
 	cause error
 	msg   string
 }
 
+func (b *BaseError) Error() string {
+	if b.msg == "" && b.cause != nil {
+		return b.cause.Error()
+	} else {
+		return b.msg
+	}
+}
+
+type errorWrapper struct {
+	BaseError
+	err error
+}
+
 // captures the callstack and returns an error
 // optionaly add details or information to the error
-func Return(e error, cause error, msg string) error {
-	return &Error{e, cause, msg}
+func Return(err error, cause error, msg string) error {
+	return &errorWrapper{
+		BaseError{
+			cause,
+			msg,
+		},
+		err,
+	}
 }
 
 // short form for return with template and args
 func Returnf(e error, cause error, args ...any) error {
 	var str string
-	if ee, ok := e.(*Error); ok {
+	if ee, ok := e.(*errorWrapper); ok {
 		str = ee.sprintf(args...)
 	}
 	str = ""
@@ -29,51 +47,60 @@ func Returnf(e error, cause error, args ...any) error {
 
 // create new error
 func New(msg string) error {
-	return &Error{nil, nil, msg}
+	return &errorWrapper{
+		BaseError{
+			nil,
+			msg,
+		},
+		nil,
+	}
 }
 
 // Create a new error extended from another error
 // error.Is will now work on both this and the from error
 func Extend(err error, msg string) error {
-	return &Error{
+	return &errorWrapper{
+		BaseError{
+			nil,
+			msg,
+		},
 		err,
-		nil,
-		msg,
 	}
 }
 
-func (e *Error) Error() string {
+func (e *errorWrapper) Error() string {
 	var sb strings.Builder
 
+	msg := e.BaseError.Error()
 	if e.err != nil {
 		sb.WriteString(e.err.Error())
-		if e.msg != "" {
+		if msg != "" {
 			sb.WriteString(": ")
 		}
 	}
 
-	if e.msg != "" {
-		sb.WriteString(e.msg)
+	if msg != "" {
+		sb.WriteString(msg)
 	}
 
 	return sb.String()
 }
 
-func (e *Error) sprintf(args ...any) string {
+func (e *errorWrapper) sprintf(args ...any) string {
 	return fmt.Sprintf(e.msg, args...)
 }
 
-func (e *Error) Is(other error) bool {
+func (e *errorWrapper) Is(other error) bool {
 	if e.err != nil {
 		return e.err == other
 	} else {
-		if x, ok := other.(*Error); ok && e == x {
+		if x, ok := other.(*errorWrapper); ok && e == x {
 			return true
 		}
 	}
 	return false
 }
 
-func (e *Error) Unwrap() error {
+func (e *errorWrapper) Unwrap() error {
 	return e.err
 }
