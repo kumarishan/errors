@@ -81,8 +81,8 @@ func TestExtend(t *testing.T) {
 		t.Errorf("got errW.Error() = %v, should be %v", errW.Error(), "base error: derieved error")
 	}
 
-	if !errors.Is(errW.(*errorWrapper).Unwrap(), err) {
-		t.Errorf("derieved \"%s\" error is not base error \"%s\"", errW.(*errorWrapper).Unwrap().Error(), err.Error())
+	if !errors.Is(errW.(*errorWithStackTrace).Unwrap(), err) {
+		t.Errorf("derieved \"%s\" error is not base error \"%s\"", errW.(*errorWithStackTrace).Unwrap().Error(), err.Error())
 	}
 }
 
