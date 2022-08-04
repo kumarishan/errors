@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -18,6 +19,12 @@ func (b *BaseError) Error() string {
 	}
 }
 
+func Is(err, target error) bool {
+	return errors.Is(err, target)
+}
+
+// errorWrapper used to return errors
+// supports errors.Is
 type errorWrapper struct {
 	BaseError
 	err error

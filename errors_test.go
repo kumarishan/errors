@@ -77,11 +77,11 @@ func TestExtend(t *testing.T) {
 
 	errW := Extend(err, "derieved error")
 
-	if errW.Error() != "derieved error" {
-		t.Errorf("derieved error should only contain its own messges")
+	if errW.Error() != "base error: derieved error" {
+		t.Errorf("got errW.Error() = %v, should be %v", errW.Error(), "base error: derieved error")
 	}
 
-	if errors.Is(errW.(*errorWrapper).Unwrap(), err) {
+	if !errors.Is(errW.(*errorWrapper).Unwrap(), err) {
 		t.Errorf("derieved \"%s\" error is not base error \"%s\"", errW.(*errorWrapper).Unwrap().Error(), err.Error())
 	}
 }

@@ -6,11 +6,22 @@ import (
 	"testing"
 )
 
-func TestHttpErr(t *testing.T) {
+func TestHttpErrError(t *testing.T) {
 	ErrHttpNotFound := NewHttpErr(nil, "not found", http.StatusNotFound)
 
-	if ErrHttpNotFound.Error() != "not found, http Not Found" {
-		t.Errorf("Error got %v, should be %v", ErrHttpNotFound.Error(), "not found, http Not Found")
+	testcases := []struct {
+		err    error
+		target string
+	}{
+		{ErrHttpNotFound, "not found, http Not Found"},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			if got := tc.err.Error(); got != tc.target {
+				t.Errorf("got %v.Error() = %v; should be %v", tc.err, got, tc.target)
+			}
+		})
 	}
 
 }
@@ -25,8 +36,11 @@ func TestHttpErrEquals(t *testing.T) {
 
 func TestHttpErrIs(t *testing.T) {
 	ErrHttpNotFound := NewHttpErr(nil, "not found", http.StatusNotFound)
+	ErrHttpNotFound2 := NewHttpErr(nil, "not found", http.StatusNotFound)
 
-	ErrRet := Return(ErrHttpNotFound, nil, "entity not found")
+	ErrRet1 := Return(ErrHttpNotFound, nil, "entity not found")
+	ErrRet2 := Return(ErrRet1, nil, "entity not found again")
+	ErrRetCause := Return(ErrHttpNotFound, errors.New("some cause"), "entity not found")
 
 	testcases := []struct {
 		err    error
@@ -34,7 +48,11 @@ func TestHttpErrIs(t *testing.T) {
 		match  bool
 	}{
 		{ErrHttpNotFound, ErrHttpNotFound, true},
-		{ErrRet, ErrHttpNotFound, true},
+		{ErrHttpNotFound, ErrHttpNotFound2, false},
+		{ErrRet1, ErrHttpNotFound, true},
+		{ErrRet2, ErrHttpNotFound, true},
+		{ErrHttpNotFound, ErrRet1, false},
+		{ErrRetCause, ErrHttpNotFound, true},
 	}
 
 	for _, tc := range testcases {
