@@ -7,7 +7,7 @@ import (
 )
 
 func StackTrace(err error) string {
-	if e, ok := err.(*errorWithStackTrace); ok {
+	if e, ok := err.(*errorWrapper); ok {
 		stack := e.stack
 		frames := runtime.CallersFrames(stack)
 

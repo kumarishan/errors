@@ -7,7 +7,7 @@ import (
 )
 
 func TestHttpErrError(t *testing.T) {
-	ErrHttpNotFound := NewHttpErr(nil, "not found", http.StatusNotFound)
+	ErrHttpNotFound := NewHttpErr("not found", http.StatusNotFound)
 
 	testcases := []struct {
 		err    error
@@ -27,7 +27,7 @@ func TestHttpErrError(t *testing.T) {
 }
 
 func TestHttpErrEquals(t *testing.T) {
-	ErrHttpNotFound := NewHttpErr(nil, "not found", http.StatusNotFound)
+	ErrHttpNotFound := NewHttpErr("not found", http.StatusNotFound)
 
 	if ErrHttpNotFound != ErrHttpNotFound {
 		t.Errorf("ErrHttpNotFound != ErrHttpNotFound, should be equal")
@@ -35,8 +35,8 @@ func TestHttpErrEquals(t *testing.T) {
 }
 
 func TestHttpErrIs(t *testing.T) {
-	ErrHttpNotFound := NewHttpErr(nil, "not found", http.StatusNotFound)
-	ErrHttpNotFound2 := NewHttpErr(nil, "not found", http.StatusNotFound)
+	ErrHttpNotFound := NewHttpErr("not found", http.StatusNotFound)
+	ErrHttpNotFound2 := NewHttpErr("not found", http.StatusNotFound)
 
 	ErrRet1 := Return(ErrHttpNotFound, nil, "entity not found")
 	ErrRet2 := Return(ErrRet1, nil, "entity not found again")

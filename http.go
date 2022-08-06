@@ -10,10 +10,9 @@ type HttpErr struct {
 	code int
 }
 
-func NewHttpErr(cause error, msg string, code int) error {
+func NewHttpErr(msg string, code int) error {
 	return &HttpErr{
 		BaseError{
-			cause,
 			msg,
 		},
 		code,

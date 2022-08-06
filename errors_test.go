@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+	"net/http"
 	"testing"
 )
 
@@ -14,8 +15,74 @@ func TestNew(t *testing.T) {
 
 }
 
+func TestError(t *testing.T) {
+	ErrEmpty := New("")
+	Err := New("base")
+	Err1 := Extend(Err, "extend base 1")
+	Err2 := Extend(Err1, "extend base 2")
+	Err1Empty := Extend(Err, "")
+	Err2Empty := Extend(Err1, "")
+	Err3Empty := Extend(ErrEmpty, "")
+
+	rerr := Return(Err, nil, "return base")
+	rerr1 := Return(Err1, nil, "return base 1")
+	rerr2 := Return(Err2, nil, "return base 2")
+
+	rrerr := Return(rerr, nil, "return return base")
+	rrerr1 := Return(Err, nil, "")
+	rrerr2 := Return(Err2, nil, "")
+	rrerr3 := Return(ErrEmpty, nil, "")
+	rrerr4 := Return(nil, nil, "some error")
+	rrerr5 := Return(nil, nil, "")
+
+	Cause := New("cause")
+	cerr1 := Return(Err, Cause, "")
+	cerr2 := Return(Err1, Cause, "")
+	cerr3 := Return(Err, Cause, "some error")
+	cerr4 := Return(ErrEmpty, Cause, "")
+	cerr5 := Return(ErrEmpty, Cause, "some error")
+
+	testcases := []struct {
+		err    error
+		target string
+	}{
+		{ErrEmpty, ""},
+		{Err, "base"},
+		{Err1, "extend base 1"},
+		{Err2, "extend base 2"},
+		{Err1Empty, "base"},
+		{Err2Empty, "extend base 1"},
+		{Err3Empty, ""},
+		{rerr, "return base"},
+		{rerr1, "return base 1"},
+		{rerr2, "return base 2"},
+		{rrerr, "return return base"},
+		{rrerr1, "base"},
+		{rrerr2, "extend base 2"},
+		{rrerr3, ""},
+		{rrerr4, "some error"},
+		{rrerr5, ""},
+
+		{cerr1, "base"},
+		{cerr2, "extend base 1"},
+		{cerr3, "some error"},
+		{cerr4, "cause"},
+		{cerr5, "some error"},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			if res := tc.err.Error(); res != tc.target {
+				t.Errorf("got [%v].Error() = %v, should be %v", tc.err, res, tc.target)
+			}
+		})
+	}
+}
+
 func TestIs(t *testing.T) {
 
+	ErrEmpty1 := New("")
+	ErrEmpty2 := New("")
 	err := New("base")
 	err1 := Extend(err, "extend base 1")
 	err2 := Extend(err1, "extend base 2")
@@ -36,6 +103,8 @@ func TestIs(t *testing.T) {
 		match  bool
 	}{
 		{nil, nil, true},
+		{ErrEmpty1, ErrEmpty1, true},
+		{ErrEmpty2, ErrEmpty2, true},
 		{err, nil, false},
 		{err, err, true},
 		{err1, err1, true},
@@ -72,44 +141,6 @@ func TestIs(t *testing.T) {
 
 }
 
-func TestExtend(t *testing.T) {
-	err := New("base error")
-
-	errW := Extend(err, "derieved error")
-
-	if errW.Error() != "base error: derieved error" {
-		t.Errorf("got errW.Error() = %v, should be %v", errW.Error(), "base error: derieved error")
-	}
-
-	if !errors.Is(errW.(*errorWithStackTrace).Unwrap(), err) {
-		t.Errorf("derieved \"%s\" error is not base error \"%s\"", errW.(*errorWithStackTrace).Unwrap().Error(), err.Error())
-	}
-}
-
-func TestReturn(t *testing.T) {
-
-	ErrNew := New("abc")
-
-	errR := Return(ErrNew, nil, "some error")
-	errRR := Return(errR, nil, "another error")
-
-	testcases := []struct {
-		err    error
-		target string
-	}{
-		{errR, "abc: some error"},
-		{errRR, "abc: some error: another error"},
-	}
-
-	for _, tc := range testcases {
-		t.Run("", func(t *testing.T) {
-			if ret := tc.err.Error(); ret != tc.target {
-				t.Errorf("return: got %v; want %v", tc.err.Error(), tc.target)
-			}
-		})
-	}
-}
-
 func TestEmbedding(t *testing.T) {
 
 	type Embed struct {
@@ -118,10 +149,31 @@ func TestEmbedding(t *testing.T) {
 		b string
 	}
 
-	Err := &Embed{BaseError{nil, "Embed Err"}, 10, "something"}
+	Err := &Embed{BaseError{"Embed Err"}, 10, "something"}
 
 	if Err.Error() != "Embed Err" {
 		t.Errorf("Error: got %v; want %v", Err.Error(), "Embed Err")
 	}
 
+}
+
+func TestAs(t *testing.T) {
+
+	f := func() error {
+		return &HttpErr{
+			BaseError{"not found"},
+			http.StatusNotFound,
+		}
+	}
+
+	f2 := func() error {
+		return Return(f(), nil, "extend 1")
+	}
+
+	rerr := f2()
+
+	var httpErr *HttpErr
+	if !errors.As(rerr, &httpErr) {
+		t.Errorf("As not working")
+	}
 }

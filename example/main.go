@@ -25,4 +25,5 @@ func main() {
 	err := C()
 	fmt.Print("\n\nError Stack trace\n")
 	fmt.Println(errors.StackTrace(err))
+	fmt.Println(errors.StackTrace(Err))
 }
