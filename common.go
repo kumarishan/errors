@@ -1,8 +1,8 @@
 package errors
 
 var (
-	ErrInvalidInput            = New("invalid input error")
-	ErrInternal                = New("internal error")
-	ErrUnexpectedInternalState = New("unexpected internal state error")
-	ErrNotFound                = New("not found erro")
+	ErrInvalidInput            = New("InvalidInputError")
+	ErrInternal                = New("InternalError")
+	ErrUnexpectedInternalState = New("UnexpectedInternalStateError")
+	ErrNotFound                = New("NotFoundError")
 )

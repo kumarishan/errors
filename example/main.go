@@ -2,19 +2,21 @@ package main
 
 import (
 	"fmt"
-	"kumarishan/errors"
-	"runtime/debug"
+
+	"github.com/kumarishan/errors"
 )
 
-var Err = errors.New("new error")
+var AErr = errors.New("AErr")
 
 func A() error {
-	debug.PrintStack()
-	return errors.Return(Err, nil, "some error")
+	return errors.Return(AErr, nil, "some error occurred in A")
 }
 
+var BErr = errors.New("BErr")
+
 func B() error {
-	return A()
+	err := A()
+	return errors.Return(BErr, err, "some error occured in B")
 }
 
 func C() error {
@@ -23,7 +25,6 @@ func C() error {
 
 func main() {
 	err := C()
-	fmt.Print("\n\nError Stack trace\n")
-	fmt.Println(errors.StackTrace(err))
-	fmt.Println(errors.StackTrace(Err))
+	fmt.Printf("Got error: %v\n", err)
+	fmt.Printf("Got error with stacktrace: %+v\n", err)
 }

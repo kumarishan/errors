@@ -1,7 +1,7 @@
 package errors
 
 import (
-	"errors"
+	stderrors "errors"
 	"net/http"
 	"testing"
 )
@@ -17,18 +17,18 @@ func TestNew(t *testing.T) {
 
 func TestError(t *testing.T) {
 	ErrEmpty := New("")
-	Err := New("base")
-	Err1 := Extend(Err, "extend base 1")
-	Err2 := Extend(Err1, "extend base 2")
-	Err1Empty := Extend(Err, "")
-	Err2Empty := Extend(Err1, "")
-	Err3Empty := Extend(ErrEmpty, "")
+	Err := New("Err")
+	Err1 := Extend(Err, "Err1")
+	Err2 := Extend(Err1, "Err2")
+	EErrEmpty := Extend(Err, "")
+	EErr1Empty := Extend(Err1, "")
+	EErrEmptyEmpty := Extend(ErrEmpty, "")
 
-	rerr := Return(Err, nil, "return base")
-	rerr1 := Return(Err1, nil, "return base 1")
-	rerr2 := Return(Err2, nil, "return base 2")
+	rerr := Return(Err, nil, "return Err")
+	rerr1 := Return(Err1, nil, "return Err1")
+	rerr2 := Return(Err2, nil, "return Err2")
 
-	rrerr := Return(rerr, nil, "return return base")
+	rrerr := Return(rerr, nil, "double return Err")
 	rrerr1 := Return(Err, nil, "")
 	rrerr2 := Return(Err2, nil, "")
 	rrerr3 := Return(ErrEmpty, nil, "")
@@ -47,24 +47,25 @@ func TestError(t *testing.T) {
 		target string
 	}{
 		{ErrEmpty, ""},
-		{Err, "base"},
-		{Err1, "extend base 1"},
-		{Err2, "extend base 2"},
-		{Err1Empty, "base"},
-		{Err2Empty, "extend base 1"},
-		{Err3Empty, ""},
-		{rerr, "return base"},
-		{rerr1, "return base 1"},
-		{rerr2, "return base 2"},
-		{rrerr, "return return base"},
-		{rrerr1, "base"},
-		{rrerr2, "extend base 2"},
+		{Err, "Err"},
+		{Err1, "Err1"},
+		{Err2, "Err2"},
+		{EErrEmpty, "Err"},
+		{EErr1Empty, "Err1"},
+		{EErrEmptyEmpty, ""},
+
+		{rerr, "return Err"},
+		{rerr1, "return Err1"},
+		{rerr2, "return Err2"},
+		{rrerr, "double return Err"},
+		{rrerr1, "Err"},
+		{rrerr2, "Err2"},
 		{rrerr3, ""},
 		{rrerr4, "some error"},
 		{rrerr5, ""},
 
-		{cerr1, "base"},
-		{cerr2, "extend base 1"},
+		{cerr1, "Err"},
+		{cerr2, "Err1"},
 		{cerr3, "some error"},
 		{cerr4, "cause"},
 		{cerr5, "some error"},
@@ -89,13 +90,18 @@ func TestIs(t *testing.T) {
 	another := New("base")
 
 	// can extend errors created using std library errors
-	berr := errors.New("lib base error")
+	berr := stderrors.New("lib base error")
 	berr1 := Extend(berr, "extend base error")
 	berr2 := Extend(berr1, "second derieved")
 
 	// Is should work on returned errors
 	rerr := Return(err, nil, "return with context")
 	rrerr := Return(rerr, nil, "return again")
+
+	Cause := New("Cause")
+
+	crerr1 := Return(err, Cause, "return with cause")
+	crerr2 := Return(crerr1, Cause, "return again with cause")
 
 	testcases := []struct {
 		err    error
@@ -129,11 +135,17 @@ func TestIs(t *testing.T) {
 
 		{rerr, err, true},
 		{rrerr, err, true},
+
+		{crerr1, err, true},
+		{crerr2, err, true},
+		{crerr2, crerr1, true},
+		{err, crerr1, false},
+		{err, crerr2, false},
 	}
 
 	for _, tc := range testcases {
 		t.Run("", func(t *testing.T) {
-			if res := errors.Is(tc.err, tc.target); res != tc.match {
+			if res := stderrors.Is(tc.err, tc.target); res != tc.match {
 				t.Errorf("Is(%v, %v) = %v, should be %v", tc.err, tc.target, res, tc.match)
 			}
 		})
@@ -173,7 +185,7 @@ func TestAs(t *testing.T) {
 	rerr := f2()
 
 	var httpErr *HttpErr
-	if !errors.As(rerr, &httpErr) {
+	if !stderrors.As(rerr, &httpErr) {
 		t.Errorf("As not working")
 	}
 }
