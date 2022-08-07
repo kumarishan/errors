@@ -6,25 +6,26 @@ import (
 	"github.com/kumarishan/errors"
 )
 
-var AErr = errors.New("AErr")
+var ErrInternalError = errors.New("internal error")
+var ErrInvalidInput = errors.New("invalid input")
+var ErrMissingIdParameter = errors.Extend(ErrInvalidInput, "missing id parameter")
 
 func A() error {
-	return errors.Return(AErr, nil, "some error occurred in A")
+	return errors.Return(ErrInvalidInput, nil, "")
 }
-
-var BErr = errors.New("BErr")
 
 func B() error {
 	err := A()
-	return errors.Return(BErr, err, "some error occured in B")
-}
 
-func C() error {
-	return B()
+	if errors.Is(err, ErrInvalidInput) {
+		return errors.Return(ErrMissingIdParameter, err, "overriden error message")
+	}
+
+	return errors.Return(ErrInternalError, nil, "")
+
 }
 
 func main() {
-	err := C()
-	fmt.Printf("Got error: %v\n", err)
-	fmt.Printf("Got error with stacktrace: %+v\n", err)
+	err := B()
+	fmt.Printf("Got error: %+v\n", err)
 }

@@ -1,6 +1,82 @@
 # errors
 
-## Defining new Errors
+## Sentinel Errors
+
+### Creating or Extending Errors
+
+```golang
+var ErrInvalidInput := New("Invalid Input")
+var ErrMissingIdParameter := Extend(ErrInvalidInput, "Missing Id Parameter")
+```
+
+`New` creates a new error.
+
+And `Extend` creates a new error whish satisfies `Is` relationship with the error it extends.
+
+```golang
+errors.Is(ErrMissingIdParameter, ErrInvalidInput) // will return true
+```
+
+### Returning errors
+
+```golang
+func Return(err error, cause error, msg string) error
+```
+
+Return returns an error of type `err`. You pass the `cause` of the error and override the error message of the error.
+
+Return internally captures the call stack which lets you print the stack trace.
+
+For eg,
+
+```golang
+import (
+	"fmt"
+
+	"github.com/kumarishan/errors"
+)
+
+var ErrInternalError = errors.New("internal error")
+var ErrInvalidInput = errors.New("invalid input")
+var ErrMissingIdParameter = errors.Extend(ErrInvalidInput, "missing id parameter")
+
+func A() error {
+	return errors.Return(ErrInvalidInput, nil, "")
+}
+
+func B() error {
+	err := A()
+
+	if errors.Is(err, ErrInvalidInput) {
+		return errors.Return(ErrMissingIdParameter, err, "overriden error message")
+	}
+
+	return errors.Return(ErrInternalError, nil, "")
+
+}
+
+func main() {
+	err := B()
+	fmt.Printf("Got error: %+v\n", err)
+}
+```
+
+the output is
+
+```
+Got error: overriden error message
+	main.B(./errors/example/main.go:21) (0x112223b)
+	main.main(./errors/example/main.go:29) (0x11222d8)
+Caused by: invalid input
+	main.A(./errors/example/main.go:14) (0x11221ff)
+	main.B(./errors/example/main.go:18) (0x11221f8)
+```
+
+---
+
+_todo_
+
+## Similarities from Java
 
 ### Using New
 
@@ -112,6 +188,7 @@ func F3() error {
 ```
 
 is equivalent to
+
 ```java
 
 class Example {
