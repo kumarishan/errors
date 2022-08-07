@@ -9,9 +9,7 @@ var ErrInvalidInput := New("Invalid Input")
 var ErrMissingIdParameter := Extend(ErrInvalidInput, "Missing Id Parameter")
 ```
 
-`New` creates a new error.
-
-And `Extend` creates a new error whish satisfies `Is` relationship with the error it extends.
+`New` creates a new error. And `Extend` creates a new error which satisfies `Is` relationship with the error it extends.
 
 ```golang
 errors.Is(ErrMissingIdParameter, ErrInvalidInput) // will return true
