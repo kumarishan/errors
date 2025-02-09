@@ -3,7 +3,7 @@ package errors
 const MaxStackDepth = 50
 
 type BaseError struct {
-	msg, errType string
+	msg string
 }
 
 func (b *BaseError) Error() string {
