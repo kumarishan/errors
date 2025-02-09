@@ -18,7 +18,8 @@ errors.Is(ErrMissingIdParameter, ErrInvalidInput) // will return true
 ### Returning errors
 
 ```golang
-func Return(err error, cause error, msg string) error
+func Return(err error, cause error, msg string
+	type string) error
 ```
 
 Return returns an error of type `err`. You pass the `cause` of the error and override the error message of the error.

@@ -17,7 +17,8 @@ type wrapper struct {
 	stack stack
 }
 
-func internalreturn(err error, skip int, cause error, msg string) error {
+func internalreturn(err error, skip int, cause error, msg string
+	type string) error {
 	stack := make(stack, MaxStackDepth)
 
 	// 2 because to skip this line and the Return function call
@@ -73,7 +74,8 @@ func pruned(cause error, stack stack) error {
 	return cause
 }
 
-func Return(err error, cause error, msg string) error {
+func Return(err error, cause error, msg string
+	type string) error {
 	return internalreturn(err, 1, cause, msg)
 }
 
