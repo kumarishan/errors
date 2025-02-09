@@ -10,7 +10,7 @@ type HttpErr struct {
 	code int
 }
 
-func NewHttpErr(msg string, code int) error {
+func NewHttpErr(msg, errType string, code int) error {
 	return &HttpErr{
 		BaseError{
 			msg,

@@ -7,7 +7,7 @@ func Is(err, target error) bool {
 }
 
 // Define a new error
-func New(msg string) error {
+func New(msg, errType string) error {
 	return &BaseError{
 		msg,
 	}
@@ -15,7 +15,7 @@ func New(msg string) error {
 
 // Create a new error extended from another error
 // error.Is will now work on both this and the from error
-func Extend(err error, msg string) error {
+func Extend(err error, msg, errType string) error {
 	if err == nil {
 		panic("errors: cannot extend from nil")
 	}
