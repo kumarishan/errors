@@ -4,6 +4,7 @@ const MaxStackDepth = 50
 
 type BaseError struct {
 	msg string
+	type string
 }
 
 func (b *BaseError) Error() string {
